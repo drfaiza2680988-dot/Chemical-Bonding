@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bond Forge: Ionic vs Covalent Bonding Game</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --panel: #1e293b;
+      --panel-border: #334155;
+      --accent-blue: #38bdf8;
+      --accent-rose: #f43f5e;
+      --accent-green: #22c55e;
+      --accent-amber: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow-x: hidden;
+    }
+
+    /* Top HUD */
+    header {
+      width: 100%;
+      max-width: 900px;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand h1 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--accent-blue), #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hud-stats {
+      display: flex;
+      gap: 1.25rem;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .stat-pill {
+      background: var(--panel);
+      padding: 0.35rem 0.8rem;
+      border-radius: 9999px;
+      border: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .sound-toggle {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+
+    .sound-toggle:hover { color: var(--text); }
+
+    /* Main Container */
+    main {
+      width: 100%;
+      max-width: 900px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      flex: 1;
+    }
+
+    .mission-banner {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      text-align: center;
+    }
+
+    .mission-banner h2 {
+      font-size: 1.1rem;
+      color: var(--accent-blue);
+      margin-bottom: 0.2rem;
+    }
+
+    .mission-banner p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    /* Simulation Canvas Card */
+    .stage-card {
+      background: #060b13;
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 380px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    svg {
+      width: 100%;
+      height: 380px;
+    }
+
+    /* Element Spec Cards overlay */
+    .element-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      width: 100%;
+    }
+
+    .element-card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      font-size: 0.85rem;
+    }
+
+    .element-card .elem-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .badge-metal { background: #b45309; color: #fef3c7; }
+    .badge-nonmetal { background: #0369a1; color: #e0f2fe; }
+
+    /* Interactive Decision Buttons */
+    .controls-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .prompt-text {
+      font-size: 0.9rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .choice-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .choice-btn {
+      background: var(--panel);
+      border: 2px solid var(--panel-border);
+      color: var(--text);
+      padding: 1.1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .choice-btn:hover:not(:disabled) {
+      border-color: var(--accent-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(56, 189, 248, 0.2);
+    }
+
+    .choice-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .choice-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .choice-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Modal / Feedback Overlay */
+    .feedback-sheet {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--panel-border);
+      padding: 1.5rem;
+      display: none;
+      flex-direction: column;
+      gap: 0.75rem;
+      animation: slideUp 0.3s ease-out forwards;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .feedback-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .feedback-status {
+      font-size: 1.25rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-correct { color: var(--accent-green); }
+    .status-wrong { color: var(--accent-rose); }
+
+    .feedback-body {
+      font-size: 0.925rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+    }
+
+    .btn-next {
+      align-self: flex-end;
+      background: var(--accent-blue);
+      color: #04101e;
+      border: none;
+      padding: 0.6rem 1.4rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.2s;
+    }
+
+    .btn-next:hover { background: #7dd3fc; }
+
+    /* Completion Summary Screen */
+    .summary-card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    .summary-card h2 {
+      font-size: 1.8rem;
+      color: var(--accent-blue);
+    }
+
+    .score-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 4px solid var(--accent-green);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 900;
+      margin: 1rem 0;
+    }
+
+    /* SVG Graphical elements */
+    .atom-shell {
+      stroke: var(--panel-border);
+      stroke-width: 1.5;
+      stroke-dasharray: 4, 3;
+      fill: none;
+    }
+    .atom-core {
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .electron {
+      transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .bracket {
+      stroke: #94a3b8;
+      stroke-width: 2.5;
+      fill: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    .charge-label {
+      font-size: 20px;
+      font-weight: 800;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span style="font-size: 1.5rem;">⚛️</span>
+      <h1>Bond Forge</h1>
+    </div>
+    <div class="hud-stats">
+      <div class="stat-pill">Level: <span id="levelLabel">1 / 6</span></div>
+      <div class="stat-pill">Score: <span id="scoreLabel" style="color:var(--accent-amber)">0</span></div>
+      <div class="stat-pill">Streak: <span id="streakLabel">🔥 0</span></div>
+      <button class="sound-toggle" id="soundToggle" title="Toggle Sound">🔊</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="mission-banner">
+      <h2 id="missionTitle">Challenge: Sodium + Chlorine</h2>
+      <p id="missionSubtitle">Examine the electronegativity and element types, then choose the bonding mechanism.</p>
+    </div>
+
+    <!-- Interactive Visual Stage -->
+    <div class="stage-card">
+      <svg id="stageSvg" viewBox="0 0 700 360">
+        <!-- Dynamically rendered atoms, electrons, and brackets -->
+      </svg>
+
+      <!-- Immediate Feedback Overlay -->
+      <div class="feedback-sheet" id="feedbackSheet">
+        <div class="feedback-header">
+          <div class="feedback-status" id="feedbackStatus">Correct!</div>
+          <button class="btn-next" id="btnNext" onclick="nextRound()">Next Challenge →</button>
+        </div>
+        <div class="feedback-body" id="feedbackText"></div>
+      </div>
+    </div>
+
+    <!-- Element Intel Cards -->
+    <div class="element-cards" id="elementCards">
+      <!-- Populated via JS -->
+    </div>
+
+    <!-- Student Action Controls -->
+    <div class="controls-wrapper" id="controlsArea">
+      <p class="prompt-text">What will the valence electrons do to achieve stable octets?</p>
+      <div class="choice-group">
+        <button class="choice-btn" id="btnIonic" onclick="handleChoice('ionic')">
+          <span class="choice-title" style="color: var(--accent-rose);">⚡ Transfer Electrons</span>
+          <span class="choice-subtitle">Ionic Bond (Metal → Non-Metal)</span>
+        </button>
+        <button class="choice-btn" id="btnCovalent" onclick="handleChoice('covalent')">
+          <span class="choice-title" style="color: var(--accent-blue);">🤝 Share Electrons</span>
+          <span class="choice-subtitle">Covalent Bond (Non-Metal + Non-Metal)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Completion / Summary Card -->
+    <div class="summary-card" id="summaryCard">
+      <h2>Forge Mastered!</h2>
+      <p style="color: var(--text-muted);">You completed all bonding challenges.</p>
+      <div class="score-circle">
+        <span id="finalScore">0</span>
+        <span style="font-size:0.75rem; color:var(--text-muted); font-weight:400;">POINTS</span>
+      </div>
+      <p id="summaryRank" style="font-size: 1.1rem; font-weight:600;"></p>
+      <button class="btn-next" style="align-self:center; margin-top:1rem;" onclick="restartGame()">Play Again 🔄</button>
+    </div>
+  </main>
+
+  <script>
+    // Audio synthesizer for educational feedback sounds (Web Audio API)
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTone(freq, type, duration, delay = 0) {
+      if (!soundEnabled) return;
+      initAudio();
+      setTimeout(() => {
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = type;
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + duration);
+        } catch (e) {}
+      }, delay * 1000);
+    }
+
+    function playSound(type) {
+      if (type === 'correct') {
+        playTone(523.25, 'triangle', 0.2, 0);       // C5
+        playTone(659.25, 'triangle', 0.2, 0.08);    // E5
+        playTone(783.99, 'triangle', 0.35, 0.16);   // G5
+      } else if (type === 'wrong') {
+        playTone(220, 'sawtooth', 0.25, 0);         // A3
+        playTone(196, 'sawtooth', 0.35, 0.15);      // G3
+      } else if (type === 'transfer') {
+        playTone(330, 'sine', 0.15, 0);
+        playTone(493.88, 'sine', 0.25, 0.1);
+      } else if (type === 'share') {
+        playTone(440, 'sine', 0.25, 0);
+        playTone(587.33, 'sine', 0.35, 0.12);
+      }
+    }
+
+    document.getElementById('soundToggle').onclick = () => {
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+    };
+
+    // Chemistry Curriculum Dataset
+    const levels = [
+      {
+        atom1: { symbol: 'Na', name: 'Sodium', type: 'metal', en: 0.93, valence: 1, shellRadius: 75, charge: '+' },
+        atom2: { symbol: 'Cl', name: 'Chlorine', type: 'nonmetal', en: 3.16, valence: 7, shellRadius: 75, charge: '-' },
+        bondType: 'ionic',
+        electronsToMove: 1,
+        explanation: 'Sodium is a metal with low electronegativity (0.93), while Chlorine is a non-metal with high electronegativity (3.16). The difference (ΔEN = 2.23) is high (> 2.0), so 1 electron is completely TRANSFERRED from Na to Cl, forming Na⁺ and Cl⁻ ions held by electrostatic attraction.'
+      },
+      {
+        atom1: { symbol: 'H', name: 'Hydrogen', type: 'nonmetal', en: 2.20, valence: 1, shellRadius: 65 },
+        atom2: { symbol: 'H', name: 'Hydrogen', type: 'nonmetal', en: 2.20, valence: 1, shellRadius: 65 },
+        bondType: 'covalent',
+        sharedPairs: 1,
+        explanation: 'Both atoms are non-metals with identical electronegativities (ΔEN = 0.0). Neither atom can strip an electron from the other, so they SHARE one pair of valence electrons to complete their duplet shells.'
+      },
+      {
+        atom1: { symbol: 'Mg', name: 'Magnesium', type: 'metal', en: 1.31, valence: 2, shellRadius: 75, charge: '2+' },
+        atom2: { symbol: 'O', name: 'Oxygen', type: 'nonmetal', en: 3.44, valence: 6, shellRadius: 75, charge: '2-' },
+        bondType: 'ionic',
+        electronsToMove: 2,
+        explanation: 'Magnesium is an alkaline earth metal that readily loses 2 valence electrons. Oxygen strongly attracts them (ΔEN = 2.13). The 2 electrons TRANSFER completely to Oxygen, forming Mg²⁺ and O²⁻.'
+      },
+      {
+        atom1: { symbol: 'Cl', name: 'Chlorine', type: 'nonmetal', en: 3.16, valence: 7, shellRadius: 75 },
+        atom2: { symbol: 'Cl', name: 'Chlorine', type: 'nonmetal', en: 3.16, valence: 7, shellRadius: 75 },
+        bondType: 'covalent',
+        sharedPairs: 1,
+        explanation: 'Two non-metal halogen atoms each need 1 electron to complete their octet. Because their attraction for electrons is equally strong, they SHARE a single pair of electrons.'
+      },
+      {
+        atom1: { symbol: 'K', name: 'Potassium', type: 'metal', en: 0.82, valence: 1, shellRadius: 80, charge: '+' },
+        atom2: { symbol: 'F', name: 'Fluorine', type: 'nonmetal', en: 3.98, valence: 7, shellRadius: 70, charge: '-' },
+        bondType: 'ionic',
+        electronsToMove: 1,
+        explanation: 'Fluorine has the highest electronegativity of all elements (3.98), whereas Potassium easily sheds its sole valence electron (0.82). The huge ΔEN (3.16) drives a complete electron TRANSFER to form K⁺ and F⁻.'
+      },
+      {
+        atom1: { symbol: 'O', name: 'Oxygen', type: 'nonmetal', en: 3.44, valence: 6, shellRadius: 75 },
+        atom2: { symbol: 'O', name: 'Oxygen', type: 'nonmetal', en: 3.44, valence: 6, shellRadius: 75 },
+        bondType: 'covalent',
+        sharedPairs: 2,
+        explanation: 'Each Oxygen atom needs 2 additional electrons to achieve an octet. They achieve this by SHARING two pairs of electrons, forging a strong double covalent bond (O=O).'
+      }
+    ];
+
+    // Game State
+    let currentIndex = 0;
+    let score = 0;
+    let streak = 0;
+    let isAnswering = true;
+
+    // Helper: SVG Element Factory
+    function createSVG(tag, attrs) {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      return el;
+    }
+
+    function initLevel() {
+      const data = levels[currentIndex];
+      isAnswering = true;
+
+      // Update HUD
+      document.getElementById('levelLabel').textContent = `${currentIndex + 1} / ${levels.length}`;
+      document.getElementById('scoreLabel').textContent = score;
+      document.getElementById('streakLabel').textContent = `🔥 ${streak}`;
+      document.getElementById('missionTitle').textContent = `Challenge: ${data.atom1.name} + ${data.atom2.name}`;
+      document.getElementById('feedbackSheet').style.display = 'none';
+
+      // Enable choice buttons
+      document.getElementById('btnIonic').disabled = false;
+      document.getElementById('btnCovalent').disabled = false;
+
+      // Update Element Cards
+      const deltaEN = Math.abs(data.atom1.en - data.atom2.en).toFixed(2);
+      document.getElementById('elementCards').innerHTML = `
+        <div class="element-card">
+          <div class="elem-title">
+            <span>${data.atom1.name} (${data.atom1.symbol})</span>
+            <span class="badge badge-${data.atom1.type}">${data.atom1.type}</span>
+          </div>
+          <div>Valence Electrons: <strong>${data.atom1.valence}</strong></div>
+          <div>Electronegativity: <strong>${data.atom1.en}</strong></div>
+        </div>
+        <div class="element-card">
+          <div class="elem-title">
+            <span>${data.atom2.name} (${data.atom2.symbol})</span>
+            <span class="badge badge-${data.atom2.type}">${data.atom2.type}</span>
+          </div>
+          <div>Valence Electrons: <strong>${data.atom2.valence}</strong></div>
+          <div>Electronegativity: <strong>${data.atom2.en}</strong></div>
+        </div>
+      `;
+
+      renderStage();
+    }
+
+    function renderStage() {
+      const data = levels[currentIndex];
+      const svg = document.getElementById('stageSvg');
+      svg.innerHTML = '';
+
+      // Left Atom Group
+      const g1 = createSVG('g', { id: 'atomGroup1', class: 'atom-core' });
+      const c1x = 220, cy = 180, r1 = data.atom1.shellRadius;
+      
+      const shell1 = createSVG('circle', { cx: c1x, cy: cy, r: r1, class: 'atom-shell', id: 'shell1' });
+      const nucleus1 = createSVG('circle', { cx: c1x, cy: cy, r: 28, fill: '#1e3a8a', stroke: '#38bdf8', 'stroke-width': 2 });
+      const text1 = createSVG('text', { x: c1x, y: cy + 7, 'text-anchor': 'middle', fill: '#fff', 'font-size': '20px', 'font-weight': 'bold' });
+      text1.textContent = data.atom1.symbol;
+      g1.append(shell1, nucleus1, text1);
+
+      // Left brackets for ionic display
+      const bLeft = createSVG('path', { d: `M ${c1x-r1-5} ${cy-r1-10} L ${c1x-r1-15} ${cy-r1-10} L ${c1x-r1-15} ${cy+r1+10} L ${c1x-r1-5} ${cy+r1+10} M ${c1x+r1+5} ${cy-r1-10} L ${c1x+r1+15} ${cy-r1-10} L ${c1x+r1+15} ${cy+r1+10} L ${c1x+r1+5} ${cy+r1+10}`, class: 'bracket', id: 'bracket1' });
+      const ch1 = createSVG('text', { x: c1x + r1 + 20, y: cy - r1 + 5, class: 'charge-label', id: 'charge1', fill: '#38bdf8' });
+      ch1.textContent = data.atom1.charge || '';
+      g1.append(bLeft, ch1);
+
+      // Right Atom Group
+      const g2 = createSVG('g', { id: 'atomGroup2', class: 'atom-core' });
+      const c2x = 480, r2 = data.atom2.shellRadius;
+
+      const shell2 = createSVG('circle', { cx: c2x, cy: cy, r: r2, class: 'atom-shell', id: 'shell2' });
+      const nucleus2 = createSVG('circle', { cx: c2x, cy: cy, r: 28, fill: '#881337', stroke: '#f43f5e', 'stroke-width': 2 });
+      const text2 = createSVG('text', { x: c2x, y: cy + 7, 'text-anchor': 'middle', fill: '#fff', 'font-size': '20px', 'font-weight': 'bold' });
+      text2.textContent = data.atom2.symbol;
+      g2.append(shell2, nucleus2, text2);
+
+      // Right brackets for ionic display
+      const bRight = createSVG('path', { d: `M ${c2x-r2-5} ${cy-r2-10} L ${c2x-r2-15} ${cy-r2-10} L ${c2x-r2-15} ${cy+r2+10} L ${c2x-r2-5} ${cy+r2+10} M ${c2x+r2+5} ${cy-r2-10} L ${c2x+r2+15} ${cy-r2-10} L ${c2x+r2+15} ${cy+r2+10} L ${c2x+r2+5} ${cy+r2+10}`, class: 'bracket', id: 'bracket2' });
+      const ch2 = createSVG('text', { x: c2x + r2 + 20, y: cy - r2 + 5, class: 'charge-label', id: 'charge2', fill: '#f43f5e' });
+      ch2.textContent = data.atom2.charge || '';
+      g2.append(bRight, ch2);
+
+      svg.append(g1, g2);
+
+      // Render Valence Electrons for Atom 1 (Blue Dots)
+      for (let i = 0; i < data.atom1.valence; i++) {
+        // Place initial electrons facing slightly towards the right for transfer
+        const angle = (i * (2 * Math.PI / data.atom1.valence)) - Math.PI / 2;
+        const ex = c1x + r1 * Math.cos(angle);
+        const ey = cy + r1 * Math.sin(angle);
+
+        const el = createSVG('circle', {
+          cx: ex, cy: ey, r: 5.5,
+          fill: '#38bdf8', stroke: '#0f172a', 'stroke-width': 1.5,
+          class: 'electron',
+          id: `a1_e_${i}`
+        });
+        svg.append(el);
+      }
+
+      // Render Valence Electrons for Atom 2 (Rose Crosses)
+      for (let i = 0; i < data.atom2.valence; i++) {
+        const angle = (i * (2 * Math.PI / data.atom2.valence)) + Math.PI / 2;
+        const ex = c2x + r2 * Math.cos(angle);
+        const ey = cy + r2 * Math.sin(angle);
+
+        const cg = createSVG('g', { class: 'electron', id: `a2_e_${i}` });
+        const l1 = createSVG('line', { x1: ex - 4.5, y1: ey - 4.5, x2: ex + 4.5, y2: ey + 4.5, stroke: '#f43f5e', 'stroke-width': 2.5, 'stroke-linecap': 'round' });
+        const l2 = createSVG('line', { x1: ex - 4.5, y1: ey + 4.5, x2: ex + 4.5, y2: ey - 4.5, stroke: '#f43f5e', 'stroke-width': 2.5, 'stroke-linecap': 'round' });
+        cg.append(l1, l2);
+        svg.append(cg);
+      }
+    }
+
+    function handleChoice(studentChoice) {
+      if (!isAnswering) return;
+      isAnswering = false;
+
+      // Lock buttons
+      document.getElementById('btnIonic').disabled = true;
+      document.getElementById('btnCovalent').disabled = true;
+
+      const data = levels[currentIndex];
+      const isCorrect = studentChoice === data.bondType;
+
+      if (isCorrect) {
+        playSound('correct');
+        score += 100 + (streak * 25);
+        streak++;
+        document.getElementById('scoreLabel').textContent = score;
+        document.getElementById('streakLabel').textContent = `🔥 ${streak}`;
+
+        // Trigger authentic bonding visualization
+        if (data.bondType === 'ionic') {
+          animateIonicTransfer(data);
+        } else {
+          animateCovalentShare(data);
+        }
+
+        showFeedback(true, `Superb! You correctly identified the ${data.bondType.toUpperCase()} bond.`, data.explanation);
+      } else {
+        playSound('wrong');
+        streak = 0;
+        document.getElementById('streakLabel').textContent = `🔥 0`;
+
+        // Shake atoms to show incompatible mechanism
+        triggerRejectionAnimation();
+
+        const hint = data.bondType === 'ionic'
+          ? `Notice that ${data.atom1.name} is a metal and ${data.atom2.name} is a non-metal with high electronegativity. They cannot share electrons stably!`
+          : `Notice that both atoms are non-metals. Neither atom easily gives away its electrons, so they must share!`;
+
+        showFeedback(false, `Not quite! This forms an ${data.bondType.toUpperCase()} bond.`, `${hint}<br><br>${data.explanation}`);
+      }
+    }
+
+    function animateIonicTransfer(data) {
+      playSound('transfer');
+      const c2x = 480, cy = 180, r2 = data.atom2.shellRadius;
+
+      // Move transferred electrons from Atom 1 over to the octet ring of Atom 2
+      for (let i = 0; i < data.electronsToMove; i++) {
+        const targetAngle = Math.PI - 0.35 + (i * 0.7); // Facing the left side of Atom 2
+        const destX = c2x + r2 * Math.cos(targetAngle);
+        const destY = cy + r2 * Math.sin(targetAngle);
+
+        const el = document.getElementById(`a1_e_${i}`);
+        if (el) {
+          el.setAttribute('cx', destX);
+          el.setAttribute('cy', destY);
+        }
+      }
+
+      // Hide empty shell for metal cation and show ionic brackets
+      setTimeout(() => {
+        const shell1 = document.getElementById('shell1');
+        if (shell1) shell1.style.opacity = '0.15';
+
+        document.getElementById('bracket1').style.opacity = '1';
+        document.getElementById('charge1').style.opacity = '1';
+        document.getElementById('bracket2').style.opacity = '1';
+        document.getElementById('charge2').style.opacity = '1';
+      }, 700);
+    }
+
+    function animateCovalentShare(data) {
+      playSound('share');
+      // Translate nuclei toward each other to form overlapping Venn-diagram shells
+      const g1 = document.getElementById('atomGroup1');
+      const g2 = document.getElementById('atomGroup2');
+      g1.style.transform = 'translateX(65px)';
+      g2.style.transform = 'translateX(-65px)';
+
+      // Shift shared electrons into the middle intersection zone (x = 350)
+      const pairs = data.sharedPairs || 1;
+      const midX = 350, cy = 180;
+      const yOffsets = pairs === 1 ? [0] : [-16, 16];
+
+      for (let i = 0; i < pairs; i++) {
+        // Move dot (from atom 1)
+        const dot = document.getElementById(`a1_e_${i}`);
+        if (dot) {
+          dot.setAttribute('cx', midX - 8);
+          dot.setAttribute('cy', cy + yOffsets[i]);
+        }
+
+        // Move cross (from atom 2)
+        const cross = document.getElementById(`a2_e_${i}`);
+        if (cross) {
+          cross.style.transform = `translate(${midX + 8 - 480}px, ${cy + yOffsets[i] - 180}px)`;
+        }
+      }
+    }
+
+    function triggerRejectionAnimation() {
+      const g1 = document.getElementById('atomGroup1');
+      const g2 = document.getElementById('atomGroup2');
+      g1.style.transform = 'translateX(-20px)';
+      g2.style.transform = 'translateX(20px)';
+      setTimeout(() => {
+        g1.style.transform = 'translateX(0)';
+        g2.style.transform = 'translateX(0)';
+      }, 300);
+    }
+
+    function showFeedback(correct, title, text) {
+      const sheet = document.getElementById('feedbackSheet');
+      const status = document.getElementById('feedbackStatus');
+      const body = document.getElementById('feedbackText');
+
+      status.textContent = title;
+      status.className = `feedback-status ${correct ? 'status-correct' : 'status-wrong'}`;
+      body.innerHTML = text;
+
+      sheet.style.display = 'flex';
+    }
+
+    function nextRound() {
+      currentIndex++;
+      if (currentIndex < levels.length) {
+        initLevel();
+      } else {
+        showFinalSummary();
+      }
+    }
+
+    function showFinalSummary() {
+      document.querySelector('.mission-banner').style.display = 'none';
+      document.querySelector('.stage-card').style.display = 'none';
+      document.getElementById('elementCards').style.display = 'none';
+      document.getElementById('controlsArea').style.display = 'none';
+
+      const summaryCard = document.getElementById('summaryCard');
+      summaryCard.style.display = 'flex';
+
+      document.getElementById('finalScore').textContent = score;
+
+      const rank = score >= 600 ? '🏅 Chemical Bonding Expert (Flawless understanding!)'
+                 : score >= 400 ? '🥈 Solid Chemist (Great grasp of electron sharing vs transfer)'
+                 : '🥉 Apprentice Chemist (Review the role of metals & non-metals and try again!)';
+
+      document.getElementById('summaryRank').textContent = rank;
+    }
+
+    function restartGame() {
+      currentIndex = 0;
+      score = 0;
+      streak = 0;
+
+      document.querySelector('.mission-banner').style.display = 'block';
+      document.querySelector('.stage-card').style.display = 'flex';
+      document.getElementById('elementCards').style.display = 'grid';
+      document.getElementById('controlsArea').style.display = 'flex';
+      document.getElementById('summaryCard').style.display = 'none';
+
+      initLevel();
+    }
+
+    // Launch game on load
+    window.onload = () => {
+      initLevel();
+    };
+  </script>
+</body>
+</html>
